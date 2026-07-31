@@ -66,6 +66,7 @@ function RecenterMap({ center }) {
 export const TechnicianMapSection = () => {
   // Default Center: Jakarta Indonesia (-6.200000, 106.816666)
   const [userLocation, setUserLocation] = useState({ lat: -6.200000, lng: 106.816666 });
+  const [mapCenter, setMapCenter] = useState({ lat: -6.200000, lng: 106.816666 });
   const [technicians, setTechnicians] = useState([]);
   const [loading, setLoading] = useState(true);
   const [hasLocation, setHasLocation] = useState(false);
@@ -107,6 +108,7 @@ export const TechnicianMapSection = () => {
           const lat = pos.coords.latitude;
           const lng = pos.coords.longitude;
           setUserLocation({ lat, lng });
+          setMapCenter({ lat, lng });
           setHasLocation(true);
           toast.success('Lokasi berhasil dideteksi!');
           fetchNearbyTechnicians(lat, lng);
@@ -163,7 +165,7 @@ export const TechnicianMapSection = () => {
           {/* Map View */}
           <div className="lg:col-span-2 bg-slate-100 rounded-3xl overflow-hidden border border-slate-200 shadow-lg h-[440px] relative z-10">
             <MapContainer
-              center={[userLocation.lat, userLocation.lng]}
+              center={[mapCenter.lat, mapCenter.lng]}
               zoom={12}
               scrollWheelZoom={false}
               className="w-full h-full"
@@ -173,7 +175,7 @@ export const TechnicianMapSection = () => {
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               />
 
-              <RecenterMap center={[userLocation.lat, userLocation.lng]} />
+              <RecenterMap center={[mapCenter.lat, mapCenter.lng]} />
 
               {/* Custom Marker Posisi Kamu */}
               <Marker position={[userLocation.lat, userLocation.lng]} icon={createUserLocationIcon()}>
@@ -244,7 +246,7 @@ export const TechnicianMapSection = () => {
                   .map((t) => (
                     <div
                       key={t.id}
-                      onClick={() => setUserLocation({ lat: parseFloat(t.latitude), lng: parseFloat(t.longitude) })}
+                      onClick={() => setMapCenter({ lat: parseFloat(t.latitude), lng: parseFloat(t.longitude) })}
                       className="bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-sm hover:border-[#109648] hover:shadow-md transition cursor-pointer flex items-center justify-between"
                     >
                       <div className="space-y-0.5">
