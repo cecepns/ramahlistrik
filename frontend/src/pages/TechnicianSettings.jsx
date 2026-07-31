@@ -151,24 +151,24 @@ export const TechnicianSettings = () => {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-[11px] text-gray-500 mb-1">Latitude</label>
+                <label className="block text-[11px] font-semibold text-gray-600 mb-1">Latitude</label>
                 <input
                   type="text"
-                  readOnly
                   placeholder="-6.200000"
                   value={formData.latitude}
-                  className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs font-mono"
+                  onChange={(e) => setFormData({ ...formData, latitude: e.target.value })}
+                  className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs font-mono focus:ring-2 focus:ring-[#109648] focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] text-gray-500 mb-1">Longitude</label>
+                <label className="block text-[11px] font-semibold text-gray-600 mb-1">Longitude</label>
                 <input
                   type="text"
-                  readOnly
                   placeholder="106.816666"
                   value={formData.longitude}
-                  className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs font-mono"
+                  onChange={(e) => setFormData({ ...formData, longitude: e.target.value })}
+                  className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs font-mono focus:ring-2 focus:ring-[#109648] focus:outline-none"
                 />
               </div>
             </div>
