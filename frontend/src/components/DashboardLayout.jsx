@@ -48,6 +48,14 @@ export const DashboardLayout = ({ title, children }) => {
         </button>
       </div>
 
+      {/* Mobile Sidebar Backdrop */}
+      {mobileSidebarOpen && (
+        <div
+          onClick={() => setMobileSidebarOpen(false)}
+          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-35 md:hidden"
+        />
+      )}
+
       {/* Sidebar Desktop & Mobile Overlay */}
       <aside className={`
         fixed md:static inset-y-0 left-0 z-40 bg-slate-900 text-slate-300 flex flex-col transition-all duration-300 shadow-md

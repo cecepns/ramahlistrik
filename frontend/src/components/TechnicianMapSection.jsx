@@ -27,7 +27,8 @@ const createUserLocationIcon = () => {
 
 // Custom Leaflet DivIcon for Technician Position (Icon User + Nama Teknisi + Jarak Badge)
 const createTechnicianMarkerIcon = (name, distanceKm) => {
-  const distText = distanceKm !== undefined ? `${parseFloat(distanceKm).toFixed(1)} km` : '';
+  const isValidDist = distanceKm !== null && distanceKm !== undefined && !isNaN(parseFloat(distanceKm));
+  const distText = isValidDist ? `${parseFloat(distanceKm).toFixed(1)} km` : '';
   const initial = name ? name.charAt(0).toUpperCase() : 'T';
 
   return L.divIcon({
@@ -205,7 +206,7 @@ export const TechnicianMapSection = () => {
                         <h4 className="font-extrabold text-slate-900 text-sm">{tech.name}</h4>
                         <div className="text-[#109648] font-bold">⭐ {parseFloat(tech.rating_avg || 5).toFixed(1)} ({tech.rating_count || 0} ulasan)</div>
                         <div className="text-slate-600">Area: {tech.working_area || 'Umum'}</div>
-                        {tech.distance_km !== undefined && (
+                        {tech.distance_km !== null && tech.distance_km !== undefined && !isNaN(parseFloat(tech.distance_km)) && (
                           <div className="text-[#ff6600] font-extrabold text-xs">
                             Jarak: {parseFloat(tech.distance_km).toFixed(1)} km dari Lokasi Kamu
                           </div>
@@ -255,7 +256,7 @@ export const TechnicianMapSection = () => {
                         <div className="text-[11px] text-[#109648] font-bold">⭐ {parseFloat(t.rating_avg || 5).toFixed(1)}</div>
                       </div>
 
-                      {t.distance_km !== undefined && (
+                      {t.distance_km !== null && t.distance_km !== undefined && !isNaN(parseFloat(t.distance_km)) && (
                         <div className="text-right">
                           <span className="text-[11px] font-extrabold text-[#ff6600] bg-[#fff0e6] px-2.5 py-1 rounded-full border border-[#ff6600]/20">
                             {parseFloat(t.distance_km).toFixed(1)} km
