@@ -7,14 +7,14 @@ import logoImg from '../assets/logo.png';
 
 export const LoginPage = () => {
   const { login, loading } = useAuth();
-  const [email, setEmail] = useState('');
+  const [loginInput, setLoginInput] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const user = await login(email, password);
+      const user = await login(loginInput, password);
       if (user.role === 'admin') navigate('/admin/dashboard');
       else if (user.role === 'technician') navigate('/technician/dashboard');
       else navigate('/customer/dashboard');
@@ -36,15 +36,15 @@ export const LoginPage = () => {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Email</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Email atau Nomor HP</label>
               <div className="relative">
                 <Mail className="w-5 h-5 text-gray-400 absolute left-3.5 top-3" />
                 <input
-                  type="email"
+                  type="text"
                   required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="email@domain.com"
+                  value={loginInput}
+                  onChange={(e) => setLoginInput(e.target.value)}
+                  placeholder="email@domain.com atau 08123456789"
                   className="w-full pl-11 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#109648] focus:outline-none"
                 />
               </div>

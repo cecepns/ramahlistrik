@@ -137,20 +137,22 @@ app.post('/api/auth/register', async (req, res) => {
 // POST /api/auth/login
 app.post('/api/auth/login', async (req, res) => {
   try {
-    const { email, password } = req.body;
-    if (!email || !password) {
-      return res.status(400).json({ success: false, message: 'Masukkan email dan password' });
+    const { email, identifier, password } = req.body;
+    const loginInput = identifier || email;
+
+    if (!loginInput || !password) {
+      return res.status(400).json({ success: false, message: 'Masukkan email/nomor HP dan password' });
     }
 
-    const [users] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
+    const [users] = await pool.query('SELECT * FROM users WHERE email = ? OR phone = ?', [loginInput, loginInput]);
     if (users.length === 0) {
-      return res.status(400).json({ success: false, message: 'Email atau password salah' });
+      return res.status(400).json({ success: false, message: 'Email/Nomor HP atau password salah' });
     }
 
     const user = users[0];
     const validPassword = await bcrypt.compare(password, user.password);
     if (!validPassword) {
-      return res.status(400).json({ success: false, message: 'Email atau password salah' });
+      return res.status(400).json({ success: false, message: 'Email/Nomor HP atau password salah' });
     }
 
     if (user.status === 'pending') {
@@ -438,6 +440,52 @@ app.put('/api/users/:id/status', authenticateToken, requireRole('admin'), async 
     res.json({ success: true, message: `Status pengguna berhasil diperbarui ke ${status}` });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Gagal memperbarui status user' });
+  }
+});
+
+// POST /api/users (Admin Create User)
+app.post('/api/users', authenticateToken, requireRole('admin'), async (req, res) => {
+  try {
+    const { name, email, phone, password, role, address, working_area, experience_years } = req.body;
+    if (!name || !email || !phone || !password || !role) {
+      return res.status(400).json({ success: false, message: 'Nama, email, no. hp, password, dan role wajib diisi' });
+    }
+
+    const [existingEmail] = await pool.query('SELECT id FROM users WHERE email = ?', [email]);
+    if (existingEmail.length > 0) {
+      return res.status(400).json({ success: false, message: 'Email sudah terdaftar' });
+    }
+
+    const [existingPhone] = await pool.query('SELECT id FROM users WHERE phone = ?', [phone]);
+    if (existingPhone.length > 0) {
+      return res.status(400).json({ success: false, message: 'Nomor HP sudah terdaftar' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const userRole = role === 'technician' ? 'technician' : 'customer';
+
+    const [result] = await pool.query(
+      'INSERT INTO users (name, email, phone, password, role, status) VALUES (?, ?, ?, ?, ?, ?)',
+      [name, email, phone, hashedPassword, userRole, 'active']
+    );
+
+    const userId = result.insertId;
+
+    if (userRole === 'technician') {
+      await pool.query(
+        'INSERT INTO technician_profiles (user_id, address, working_area, experience_years) VALUES (?, ?, ?, ?)',
+        [userId, address || '', working_area || '', experience_years || 0]
+      );
+    }
+
+    res.json({
+      success: true,
+      message: `${userRole === 'technician' ? 'Teknisi' : 'Customer'} berhasil ditambahkan!`,
+      data: { id: userId }
+    });
+  } catch (error) {
+    console.error('Admin create user error:', error);
+    res.status(500).json({ success: false, message: 'Gagal menambahkan pengguna' });
   }
 });
 

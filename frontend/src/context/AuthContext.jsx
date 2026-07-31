@@ -13,10 +13,10 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(() => localStorage.getItem('ramah_token') || null);
   const [loading, setLoading] = useState(false);
 
-  const login = async (email, password) => {
+  const login = async (identifier, password) => {
     setLoading(true);
     try {
-      const res = await request.post(API_ENDPOINTS.AUTH.LOGIN, { email, password });
+      const res = await request.post(API_ENDPOINTS.AUTH.LOGIN, { identifier, email: identifier, password });
       if (res.success) {
         setUser(res.data.user);
         setToken(res.data.token);
@@ -26,7 +26,7 @@ export const AuthProvider = ({ children }) => {
         return res.data.user;
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Gagal login, periksa email & password');
+      toast.error(error.response?.data?.message || 'Gagal login, periksa email / no HP & password');
       throw error;
     } finally {
       setLoading(false);

@@ -5,7 +5,7 @@ import { Modal } from '../components/Modal';
 import { confirmToast } from '../components/ConfirmToast';
 import { request } from '../utils/request';
 import { API_ENDPOINTS } from '../utils/endpoints';
-import { Search, Wallet, Edit2, Trash2, CheckCircle, ShieldCheck, ShieldOff } from 'lucide-react';
+import { Search, Wallet, Edit2, Trash2, CheckCircle, ShieldCheck, ShieldOff, UserPlus } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export const AdminTechnicians = () => {
@@ -16,6 +16,18 @@ export const AdminTechnicians = () => {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
+
+  // Create Tech Modal State
+  const [isCreateTechModalOpen, setIsCreateTechModalOpen] = useState(false);
+  const [createTechForm, setCreateTechForm] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    password: '',
+    address: '',
+    working_area: '',
+    experience_years: ''
+  });
 
   // Deposit Modal State
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
@@ -59,6 +71,31 @@ export const AdminTechnicians = () => {
     }, 300);
     return () => clearTimeout(timer);
   }, [fetchTechs]);
+
+  const handleCreateTechSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await request.post(API_ENDPOINTS.USERS.CREATE, {
+        ...createTechForm,
+        role: 'technician',
+        experience_years: parseInt(createTechForm.experience_years) || 0
+      });
+      toast.success('Teknisi baru berhasil ditambahkan!');
+      setIsCreateTechModalOpen(false);
+      setCreateTechForm({
+        name: '',
+        email: '',
+        phone: '',
+        password: '',
+        address: '',
+        working_area: '',
+        experience_years: ''
+      });
+      fetchTechs();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Gagal menambahkan teknisi');
+    }
+  };
 
   const handleUpdateStatus = async (userId, newStatus) => {
     try {
@@ -144,28 +181,48 @@ export const AdminTechnicians = () => {
   return (
     <DashboardLayout title="Manajemen & Approval Teknisi">
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
-        {/* Filters */}
-        <div className="flex flex-col sm:flex-row justify-between gap-4">
-          <div className="relative flex-1 max-w-md">
-            <Search className="w-5 h-5 text-gray-400 absolute left-3 top-3" />
-            <input
-              type="text"
-              placeholder="Cari nama atau area kerja..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none"
-            />
+        {/* Filters & Actions */}
+        <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4">
+          <div className="flex-1 flex flex-col sm:flex-row gap-4 max-w-2xl">
+            <div className="relative flex-1">
+              <Search className="w-5 h-5 text-gray-400 absolute left-3 top-3" />
+              <input
+                type="text"
+                placeholder="Cari nama atau area kerja..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#ff6600] focus:outline-none"
+              />
+            </div>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-4 py-2.5 border border-gray-200 rounded-xl bg-white text-sm font-semibold focus:ring-2 focus:ring-[#ff6600] focus:outline-none"
+            >
+              <option value="">Semua Status</option>
+              <option value="pending">Pending Approval</option>
+              <option value="active">Aktif</option>
+              <option value="suspended">Suspended</option>
+            </select>
           </div>
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-4 py-2.5 border border-gray-200 rounded-xl bg-white text-sm font-semibold focus:ring-2 focus:ring-amber-500 focus:outline-none"
+          <button
+            onClick={() => {
+              setCreateTechForm({
+                name: '',
+                email: '',
+                phone: '',
+                password: '',
+                address: '',
+                working_area: '',
+                experience_years: ''
+              });
+              setIsCreateTechModalOpen(true);
+            }}
+            className="flex items-center justify-center space-x-2 px-5 py-2.5 bg-[#ff6600] hover:bg-[#e05500] text-white font-semibold rounded-xl transition shadow-sm"
           >
-            <option value="">Semua Status</option>
-            <option value="pending">Pending Approval</option>
-            <option value="active">Aktif</option>
-            <option value="suspended">Suspended</option>
-          </select>
+            <UserPlus className="w-5 h-5" />
+            <span>Tambah Teknisi</span>
+          </button>
         </div>
 
         {/* Table */}
@@ -414,6 +471,117 @@ export const AdminTechnicians = () => {
               className="px-5 py-2 text-xs font-bold bg-[#ff6600] text-white rounded-full hover:bg-[#e05500] shadow-sm"
             >
               Simpan Perubahan
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Create Technician Modal */}
+      <Modal
+        isOpen={isCreateTechModalOpen}
+        onClose={() => setIsCreateTechModalOpen(false)}
+        title="Tambah Teknisi Baru"
+      >
+        <form onSubmit={handleCreateTechSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">Nama Lengkap Teknisi *</label>
+            <input
+              type="text"
+              required
+              placeholder="Contoh: Ahmad Rizki"
+              value={createTechForm.name}
+              onChange={(e) => setCreateTechForm({ ...createTechForm, name: e.target.value })}
+              className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#ff6600] focus:outline-none"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Email *</label>
+              <input
+                type="email"
+                required
+                placeholder="ahmad@example.com"
+                value={createTechForm.email}
+                onChange={(e) => setCreateTechForm({ ...createTechForm, email: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#ff6600] focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">No HP / WhatsApp *</label>
+              <input
+                type="text"
+                required
+                placeholder="08123456789"
+                value={createTechForm.phone}
+                onChange={(e) => setCreateTechForm({ ...createTechForm, phone: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#ff6600] focus:outline-none"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Area Kerja</label>
+              <input
+                type="text"
+                placeholder="Contoh: Jakarta Selatan & Depok"
+                value={createTechForm.working_area}
+                onChange={(e) => setCreateTechForm({ ...createTechForm, working_area: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#ff6600] focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Pengalaman (Tahun)</label>
+              <input
+                type="number"
+                min="0"
+                placeholder="3"
+                value={createTechForm.experience_years}
+                onChange={(e) => setCreateTechForm({ ...createTechForm, experience_years: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#ff6600] focus:outline-none"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">Alamat Lengkap</label>
+            <textarea
+              rows="2"
+              placeholder="Jl. Merdeka No. 123..."
+              value={createTechForm.address}
+              onChange={(e) => setCreateTechForm({ ...createTechForm, address: e.target.value })}
+              className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#ff6600] focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">Password *</label>
+            <input
+              type="password"
+              required
+              placeholder="Masukkan password..."
+              value={createTechForm.password}
+              onChange={(e) => setCreateTechForm({ ...createTechForm, password: e.target.value })}
+              className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#ff6600] focus:outline-none"
+            />
+          </div>
+
+          <div className="flex justify-end space-x-3 pt-4 border-t">
+            <button
+              type="button"
+              onClick={() => setIsCreateTechModalOpen(false)}
+              className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-xl"
+            >
+              Batal
+            </button>
+            <button
+              type="submit"
+              className="px-5 py-2 text-xs font-bold bg-[#ff6600] text-white rounded-full hover:bg-[#e05500] shadow-sm"
+            >
+              Simpan Teknisi
             </button>
           </div>
         </form>

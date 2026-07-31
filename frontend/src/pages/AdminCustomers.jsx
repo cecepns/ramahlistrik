@@ -5,7 +5,7 @@ import { Modal } from '../components/Modal';
 import { confirmToast } from '../components/ConfirmToast';
 import { request } from '../utils/request';
 import { API_ENDPOINTS } from '../utils/endpoints';
-import { Search, Edit2, Trash2, ShieldAlert, ShieldCheck, ShieldOff } from 'lucide-react';
+import { Search, Edit2, Trash2, ShieldAlert, ShieldCheck, ShieldOff, UserPlus } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export const AdminCustomers = () => {
@@ -15,6 +15,15 @@ export const AdminCustomers = () => {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
+
+  // Create Customer Modal State
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [createFormData, setCreateFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    password: ''
+  });
 
   // Edit / Reset Password Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -50,6 +59,22 @@ export const AdminCustomers = () => {
     }, 300);
     return () => clearTimeout(timer);
   }, [fetchCustomers]);
+
+  const handleCreateSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await request.post(API_ENDPOINTS.USERS.CREATE, {
+        ...createFormData,
+        role: 'customer'
+      });
+      toast.success('Customer baru berhasil ditambahkan');
+      setIsCreateModalOpen(false);
+      setCreateFormData({ name: '', email: '', phone: '', password: '' });
+      fetchCustomers();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Gagal menambahkan customer');
+    }
+  };
 
   const handleOpenModal = (user) => {
     setSelectedUser(user);
@@ -101,8 +126,8 @@ export const AdminCustomers = () => {
   return (
     <DashboardLayout title="Manajemen Data Customer">
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
-        {/* Search */}
-        <div className="flex flex-col sm:flex-row justify-between gap-4">
+        {/* Search & Actions */}
+        <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4">
           <div className="relative flex-1 max-w-md">
             <Search className="w-5 h-5 text-gray-400 absolute left-3 top-3" />
             <input
@@ -113,6 +138,16 @@ export const AdminCustomers = () => {
               className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#109648] focus:outline-none"
             />
           </div>
+          <button
+            onClick={() => {
+              setCreateFormData({ name: '', email: '', phone: '', password: '' });
+              setIsCreateModalOpen(true);
+            }}
+            className="flex items-center justify-center space-x-2 px-5 py-2.5 bg-[#109648] hover:bg-[#0c7a3a] text-white font-semibold rounded-xl transition shadow-sm"
+          >
+            <UserPlus className="w-5 h-5" />
+            <span>Tambah Customer</span>
+          </button>
         </div>
 
         {/* Table */}
@@ -265,6 +300,81 @@ export const AdminCustomers = () => {
               className="px-5 py-2 text-xs font-bold bg-[#ff6600] text-white rounded-full hover:bg-[#e05500] shadow-sm"
             >
               Simpan Perubahan
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Create Customer Modal */}
+      <Modal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        title="Tambah Customer Baru"
+      >
+        <form onSubmit={handleCreateSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">Nama Lengkap *</label>
+            <input
+              type="text"
+              required
+              placeholder="Contoh: Budi Santoso"
+              value={createFormData.name}
+              onChange={(e) => setCreateFormData({ ...createFormData, name: e.target.value })}
+              className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#109648] focus:outline-none"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Email *</label>
+              <input
+                type="email"
+                required
+                placeholder="budi@example.com"
+                value={createFormData.email}
+                onChange={(e) => setCreateFormData({ ...createFormData, email: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#109648] focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">No HP / WhatsApp *</label>
+              <input
+                type="text"
+                required
+                placeholder="08123456789"
+                value={createFormData.phone}
+                onChange={(e) => setCreateFormData({ ...createFormData, phone: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#109648] focus:outline-none"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">Password *</label>
+            <input
+              type="password"
+              required
+              placeholder="Masukkan password..."
+              value={createFormData.password}
+              onChange={(e) => setCreateFormData({ ...createFormData, password: e.target.value })}
+              className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#109648] focus:outline-none"
+            />
+          </div>
+
+          <div className="flex justify-end space-x-3 pt-4 border-t">
+            <button
+              type="button"
+              onClick={() => setIsCreateModalOpen(false)}
+              className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-xl"
+            >
+              Batal
+            </button>
+            <button
+              type="submit"
+              className="px-5 py-2 text-xs font-bold bg-[#109648] text-white rounded-full hover:bg-[#0c7a3a] shadow-sm"
+            >
+              Simpan Customer
             </button>
           </div>
         </form>
